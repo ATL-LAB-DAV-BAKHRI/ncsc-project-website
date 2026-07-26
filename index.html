@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriSense — AI Disease Early Warning System | NCSC Project</title>
+    <meta name="description" content="AI-Based Disease Early Warning System for Farmers — an IoT and machine-learning solution for sustainable agriculture that reduces crop loss and pesticide overuse.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Loader -->
+    <div id="loader">
+        <div class="loader-mark">
+            <svg viewBox="0 0 64 64">
+                <circle class="ring" cx="32" cy="32" r="26"></circle>
+                <circle class="arc" cx="32" cy="32" r="26"></circle>
+            </svg>
+        </div>
+        <div class="loader-label">CALIBRATING SENSORS</div>
+    </div>
+
+    <div class="grain-overlay"></div>
+    <canvas id="field-canvas"></canvas>
+    <div id="scroll-progress"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-inner">
+            <a href="#home" class="brand">
+                <span class="brand-mark">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                </span>
+                Agri<span class="accent">Sense</span>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#working" class="nav-link">Process</a></li>
+                <li><a href="#features" class="nav-link">Features</a></li>
+                <li><a href="#prototype" class="nav-link">Prototype</a></li>
+            </ul>
+
+            <div class="nav-right">
+                <button id="theme-toggle" class="icon-btn" aria-label="Toggle dark mode">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+                <button id="mobile-menu-btn" class="icon-btn mobile-toggle" aria-label="Open menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden">
+            <a href="#home">Home</a>
+            <a href="#about">About</a>
+            <a href="#working">Process</a>
+            <a href="#features">Features</a>
+            <a href="#prototype">Prototype</a>
+        </div>
+    </nav>
+
+    <main>
+        <!-- HERO -->
+        <section id="home">
+            <div class="wrap">
+                <div class="hero-grid">
+                    <div data-reveal="left">
+                        <div class="eyebrow"><span class="dot"></span> NCSC 2026 · Working Prototype</div>
+                        <h1 class="hero-title">Catching crop disease <span class="text-gradient">before it's visible.</span></h1>
+                        <p class="hero-lede">AgriSense pairs low-cost field sensors with an on-device AI model to flag disease risk days before symptoms appear — helping farmers act early, spray less, and save more of every harvest.</p>
+                        <div class="hero-actions">
+                            <a href="#prototype" class="btn btn-primary">
+                                Explore the project
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </a>
+                            <a href="#working" class="btn btn-outline">
+                                <i class="fa-solid fa-microchip"></i> How it works
+                            </a>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="hero-stat"><span class="num" data-count="98">0</span><span class="label">Model Accuracy %</span></div>
+                            <div class="hero-stat"><span class="num" data-count="60">0</span><span class="label">Farmers Surveyed +</span></div>
+                            <div class="hero-stat"><span class="num" data-count="4">0</span><span class="label">Sensor Inputs</span></div>
+                        </div>
+                    </div>
+
+                    <div class="hero-visual" data-reveal="right">
+                        <div class="orb"></div>
+                        <div class="hero-photo">
+                            <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=2070&auto=format&fit=crop" alt="Sensor-monitored crop field">
+                        </div>
+
+                        <div class="float-chip chip-1 glass">
+                            <span class="ic"><i class="fa-solid fa-satellite-dish"></i></span>
+                            <div><div class="tt">Signal synced</div><div class="ss">ESP32 · Wi-Fi</div></div>
+                        </div>
+                        <div class="float-chip chip-2 glass">
+                            <span class="ic"><i class="fa-solid fa-leaf"></i></span>
+                            <div><div class="tt">Field healthy</div><div class="ss">Zone B-04</div></div>
+                        </div>
+
+                        <div class="terminal">
+                            <div class="terminal-head">
+                                <span>Field Readout</span>
+                                <span class="live"><i class="blip"></i>LIVE</span>
+                            </div>
+                            <div class="terminal-row"><span class="k">Soil moisture</span><span class="v" id="t-soil">42%</span></div>
+                            <div class="terminal-row"><span class="k">Temperature</span><span class="v" id="t-temp">27.4°C</span></div>
+                            <div class="terminal-row"><span class="k">Humidity</span><span class="v" id="t-hum">68%</span></div>
+                            <div class="terminal-risk">
+                                <span class="k mono" style="font-size:.78rem;color:rgba(231,240,233,.55)">Disease risk</span>
+                                <span class="risk-pill" id="t-risk">LOW · 12%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider"><svg viewBox="0 0 1440 90" preserveAspectRatio="none"><path fill="var(--paper-alt)" d="M0,32 C240,90 480,0 720,24 C960,48 1200,88 1440,40 L1440,90 L0,90 Z"></path></svg></div>
+
+        <!-- ABOUT / PROBLEM -->
+        <section id="about" style="background:var(--paper-alt); padding-top:100px;">
+            <div class="wrap">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow"><span class="dot"></span> The Context</div>
+                    <h2 class="section-title">Why farmers need <span class="text-gradient">an earlier signal</span></h2>
+                    <p class="section-lede">Crop disease is preventable when caught early. Today, most small farms have no way to see it coming.</p>
+                </div>
+
+                <div class="bento-2">
+                    <div class="info-card card" data-reveal="left">
+                        <div class="info-icon tone-forest"><i class="fa-solid fa-seedling"></i></div>
+                        <h3>What the project does</h3>
+                        <p>Crop diseases are one of the leading causes of yield loss worldwide, and most farmers lack the tools to catch them in the early stages.</p>
+                        <p>AgriSense monitors temperature, humidity, and soil moisture in real time through low-cost IoT sensors, then feeds that data to an AI model that predicts disease risk before visible symptoms appear.</p>
+                    </div>
+
+                    <div class="info-card card" data-reveal="right">
+                        <div class="info-icon tone-signal"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <h3>The problem, in four parts</h3>
+                        <ul class="problem-list">
+                            <li><span class="x-mark"><i class="fa-solid fa-xmark"></i></span><span><strong>Late detection.</strong> Symptoms are often noticed only after damage is irreversible.</span></li>
+                            <li><span class="x-mark"><i class="fa-solid fa-xmark"></i></span><span><strong>Inaccurate inspection.</strong> Manual, visual checks are slow and subjective.</span></li>
+                            <li><span class="x-mark"><i class="fa-solid fa-xmark"></i></span><span><strong>Excess pesticide.</strong> Without precise data, farmers over-spray, harming soil and raising costs.</span></li>
+                            <li><span class="x-mark"><i class="fa-solid fa-xmark"></i></span><span><strong>No continuous monitoring.</strong> Small-scale farms rarely have access to real-time field data.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- OBJECTIVES -->
+        <section style="background:var(--paper-alt); padding-top:0;">
+            <div class="wrap">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow"><span class="dot"></span> Goals</div>
+                    <h2 class="section-title">Project <span class="text-gradient">objectives</span></h2>
+                </div>
+                <div class="grid-4">
+                    <div class="obj-card card" data-reveal>
+                        <div class="ic tone-forest" style="background:var(--sage-100); color:var(--forest);"><i class="fa-solid fa-microscope"></i></div>
+                        <h4>Early detection</h4>
+                        <p>Identify disease risk before symptoms are visible to the eye.</p>
+                    </div>
+                    <div class="obj-card card" data-reveal>
+                        <div class="ic" style="background:rgba(62,124,177,0.12); color:var(--signal);"><i class="fa-solid fa-chart-line"></i></div>
+                        <h4>Reduce crop loss</h4>
+                        <p>Minimise yield losses caused by delayed intervention.</p>
+                    </div>
+                    <div class="obj-card card" data-reveal>
+                        <div class="ic" style="background:var(--sage-100); color:var(--forest);"><i class="fa-solid fa-spray-can-sparkles"></i></div>
+                        <h4>Less pesticide</h4>
+                        <p>Targeted spraying protects both soil health and budget.</p>
+                    </div>
+                    <div class="obj-card card" data-reveal>
+                        <div class="ic" style="background:rgba(62,124,177,0.12); color:var(--signal);"><i class="fa-solid fa-mobile-screen"></i></div>
+                        <h4>Real-time alerts</h4>
+                        <p>Push risk notifications straight to the farmer's phone.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider flip"><svg viewBox="0 0 1440 90" preserveAspectRatio="none"><path fill="var(--paper-alt)" d="M0,32 C240,90 480,0 720,24 C960,48 1200,88 1440,40 L1440,90 L0,90 Z"></path></svg></div>
+
+        <!-- HOW IT WORKS -->
+        <section id="working">
+            <div class="wrap">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow"><span class="dot"></span> The Process</div>
+                    <h2 class="section-title">From soil to <span class="text-gradient">smartphone</span></h2>
+                    <p class="section-lede">Four stages, running continuously, turn raw field conditions into an actionable warning.</p>
+                </div>
+
+                <div class="timeline">
+                    <div class="timeline-track"></div>
+                    <div class="tl-step" data-reveal>
+                        <div class="tl-num">01</div>
+                        <h4>Field monitoring</h4>
+                        <p>Sensors capture soil moisture, temperature, and humidity around the clock.</p>
+                    </div>
+                    <div class="tl-step" data-reveal>
+                        <div class="tl-num">02</div>
+                        <h4>Data transmission</h4>
+                        <p>An ESP32 microcontroller processes readings and pushes them to the cloud over Wi-Fi.</p>
+                    </div>
+                    <div class="tl-step" data-reveal>
+                        <div class="tl-num">03</div>
+                        <h4>AI analysis</h4>
+                        <p>A trained machine-learning model scans incoming data for early disease patterns.</p>
+                    </div>
+                    <div class="tl-step" data-reveal>
+                        <div class="tl-num">04</div>
+                        <h4>Smart alert</h4>
+                        <p>The farmer receives a risk score and a clear, actionable recommendation.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HARDWARE / SOFTWARE -->
+        <section style="background:var(--paper-alt);">
+            <div class="wrap">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:70px;" class="hw-sw-grid">
+                    <div class="stack-col" data-reveal="left">
+                        <h2><i class="fa-solid fa-microchip" style="color:var(--forest);"></i> Hardware used</h2>
+                        <div class="chip-grid">
+                            <div class="chip-item card"><span class="ic"><i class="fa-solid fa-memory"></i></span><span class="label">ESP32 DevKit</span></div>
+                            <div class="chip-item card"><span class="ic"><i class="fa-solid fa-droplet"></i></span><span class="label">Soil sensor</span></div>
+                            <div class="chip-item card"><span class="ic"><i class="fa-solid fa-temperature-low"></i></span><span class="label">DHT22 sensor</span></div>
+                            <div class="chip-item card"><span class="ic"><i class="fa-solid fa-tv"></i></span><span class="label">OLED display</span></div>
+                            <div class="chip-item card"><span class="ic"><i class="fa-solid fa-volume-high"></i></span><span class="label">Buzzer</span></div>
+                            <div class="chip-item card"><span class="ic"><i class="fa-solid fa-plug"></i></span><span class="label">Power supply</span></div>
+                        </div>
+                    </div>
+
+                    <div class="stack-col" data-reveal="right">
+                        <h2><i class="fa-solid fa-code" style="color:var(--signal);"></i> Software stack</h2>
+                        <div class="chip-grid">
+                            <div class="chip-item card"><span class="ic"><i class="fa-brands fa-python"></i></span><span class="label">Python (AI)</span></div>
+                            <div class="chip-item card"><span class="ic"><i class="fa-solid fa-code"></i></span><span class="label">Arduino IDE</span></div>
+                            <div class="chip-item card"><span class="ic"><i class="fa-brands fa-html5"></i></span><span class="label">HTML5 &amp; CSS3</span></div>
+                            <div class="chip-item card"><span class="ic"><i class="fa-brands fa-js"></i></span><span class="label">JavaScript</span></div>
+                            <div class="chip-item card"><span class="ic"><i class="fa-solid fa-cloud"></i></span><span class="label">ThingSpeak</span></div>
+                            <div class="chip-item card"><span class="ic"><i class="fa-solid fa-fire"></i></span><span class="label">Firebase</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURES -->
+        <section id="features">
+            <div class="wrap">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow"><span class="dot"></span> Capabilities</div>
+                    <h2 class="section-title">Key <span class="text-gradient">features</span></h2>
+                </div>
+
+                <div class="bento-features">
+                    <div class="feat-card card" data-reveal>
+                        <div class="ic" style="background:var(--sage-100); color:var(--forest);"><i class="fa-solid fa-robot"></i></div>
+                        <h4>AI prediction</h4>
+                        <p>A trained model predicts disease onset with high accuracy from live sensor data.</p>
+                    </div>
+                    <div class="feat-card card" data-reveal>
+                        <div class="ic" style="background:rgba(62,124,177,0.12); color:var(--signal);"><i class="fa-solid fa-satellite-dish"></i></div>
+                        <h4>IoT connectivity</h4>
+                        <p>Seamless wireless transmission from field sensors to the cloud for processing.</p>
+                    </div>
+                    <div class="feat-card card" data-reveal>
+                        <div class="ic" style="background:var(--sage-100); color:var(--forest);"><i class="fa-solid fa-bell-concierge"></i></div>
+                        <h4>Mobile alerts</h4>
+                        <p>Instant SMS and in-app notifications the moment risk crosses a threshold.</p>
+                    </div>
+                    <div class="feat-card card" data-reveal>
+                        <div class="ic" style="background:rgba(62,124,177,0.12); color:var(--signal);"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                        <h4>Low cost</h4>
+                        <p>Built from affordable components, designed for small-scale farmers.</p>
+                    </div>
+                    <div class="feat-card card" data-reveal>
+                        <div class="ic" style="background:var(--sage-100); color:var(--forest);"><i class="fa-solid fa-bolt"></i></div>
+                        <h4>Energy efficient</h4>
+                        <p>Low power draw, compatible with a small solar panel setup.</p>
+                    </div>
+                    <div class="feat-card card wide" data-reveal>
+                        <div class="ic" style="background:rgba(62,124,177,0.12); color:var(--signal); width:56px; height:56px;"><i class="fa-solid fa-chart-pie"></i></div>
+                        <div>
+                            <h4>Smart dashboard</h4>
+                            <p>A visual, at-a-glance view of farm health trends over time — soil, weather, and risk in one place.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider"><svg viewBox="0 0 1440 90" preserveAspectRatio="none"><path fill="var(--paper-alt)" d="M0,32 C240,90 480,0 720,24 C960,48 1200,88 1440,40 L1440,90 L0,90 Z"></path></svg></div>
+
+        <!-- SURVEY -->
+        <section style="background:var(--paper-alt); padding-top:100px;">
+            <div class="wrap">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow"><span class="dot"></span> Field Research</div>
+                    <h2 class="section-title">Survey &amp; <span class="text-gradient">data analysis</span></h2>
+                    <p class="section-lede">We surveyed 60+ local farmers to ground the design in real agricultural challenges.</p>
+                </div>
+
+                <div class="survey-grid">
+                    <div class="chart-card card" data-reveal="left">
+                        <h3>Disease detection timing</h3>
+                        <div class="canvas-wrap"><canvas id="surveyPieChart"></canvas></div>
+                        <p class="caption">Most cases are still caught too late for effective treatment.</p>
+                    </div>
+                    <div class="chart-card card" data-reveal="right">
+                        <h3>Disease incidence by crop</h3>
+                        <div class="canvas-wrap"><canvas id="surveyBarChart"></canvas></div>
+                        <p class="caption">Tomato and wheat show the highest vulnerability in our sample.</p>
+                    </div>
+                </div>
+
+                <div class="findings-card card" data-reveal>
+                    <h3>Major findings</h3>
+                    <div class="stat-row">
+                        <div><span class="counter" data-count="75">0</span><span class="mono counter-label">% rely on visual inspection only</span></div>
+                        <div><span class="counter" data-count="60">0</span><span class="mono counter-label">% report yield loss from late detection</span></div>
+                        <div><span class="counter" data-count="85">0</span><span class="mono counter-label">% want an affordable warning system</span></div>
+                    </div>
+                    <div class="findings-note"><i class="fa-solid fa-circle-info"></i> Excessive pesticide use remains a common preventive habit — one that steadily degrades soil health over time.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROTOTYPE -->
+        <section id="prototype">
+            <div class="wrap">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow"><span class="dot"></span> Build</div>
+                    <h2 class="section-title">Project <span class="text-gradient">prototype</span></h2>
+                    <p class="section-lede">The IoT hardware setup, assembled and tested in the field.</p>
+                </div>
+
+                <div class="grid-3">
+                    <div class="proto-card rounded-frame" data-reveal>
+                        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop" alt="Circuit assembly on breadboard">
+                        <div class="proto-caption">Circuit assembly</div>
+                    </div>
+                    <div class="proto-card rounded-frame" data-reveal>
+                        <img src="https://images.unsplash.com/photo-1555664424-778a1e5e1b48?q=80&w=2070&auto=format&fit=crop" alt="Assembled hardware unit">
+                        <div class="proto-caption">Hardware setup</div>
+                    </div>
+                    <div class="proto-card rounded-frame" data-reveal>
+                        <img src="https://images.unsplash.com/photo-1592982537447-6f2944b25e79?q=80&w=2070&auto=format&fit=crop" alt="Field testing in crop rows">
+                        <div class="proto-caption">Field testing</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CIRCUIT DIAGRAM -->
+        <section style="background:var(--paper-alt);">
+            <div class="wrap-narrow" style="text-align:center;">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow"><span class="dot"></span> Schematic</div>
+                    <h2 class="section-title">Circuit <span class="text-gradient">diagram</span></h2>
+                </div>
+                <div class="circuit-frame card" data-reveal="scale">
+                    <img src="https://images.unsplash.com/photo-1605333550291-76cd2d043d83?q=80&w=2070&auto=format&fit=crop" alt="Circuit diagram placeholder">
+                </div>
+                <p class="mono" style="font-size:0.78rem; color:var(--graphite-400); margin-top:18px;">Placeholder — final schematic to be swapped in before judging.</p>
+            </div>
+        </section>
+
+        <!-- ALGORITHM FLOW -->
+        <section>
+            <div class="wrap">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow"><span class="dot"></span> Logic</div>
+                    <h2 class="section-title">Algorithm <span class="text-gradient">flowchart</span></h2>
+                </div>
+
+                <div class="flow-wrap">
+                    <div class="flow-node pill glass" data-reveal>Start system</div>
+                    <div class="flow-connector"></div>
+                    <div class="flow-node card" data-reveal>Initialise ESP32 &amp; sensors</div>
+                    <div class="flow-connector"></div>
+                    <div class="flow-node card" data-reveal>Read soil moisture, temperature, humidity</div>
+                    <div class="flow-connector"></div>
+                    <div class="flow-node card accent" data-reveal>Send data to cloud / on-device AI</div>
+                    <div class="flow-connector"></div>
+                    <div class="flow-node card" data-reveal>ML model predicts disease risk</div>
+
+                    <div class="flow-branches" data-reveal>
+                        <div class="flow-branch risk">
+                            <div class="flow-connector connector-short"></div>
+                            <div class="flow-node risk-hi">Risk high? Yes</div>
+                            <div class="flow-node result-bad">Trigger buzzer &amp; send SMS</div>
+                        </div>
+                        <div class="flow-branch ok">
+                            <div class="flow-connector connector-short"></div>
+                            <div class="flow-node risk-lo">Risk low? No</div>
+                            <div class="flow-node result-good">Continue monitoring</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ADVANTAGES -->
+        <section class="band-dark">
+            <div class="wrap">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow" style="background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.12); color:var(--moss-soft);"><span class="dot"></span> Impact</div>
+                    <h2 class="section-title">Why this <span class="text-gradient">matters</span></h2>
+                </div>
+                <div class="adv-grid">
+                    <div class="adv-item" data-reveal>
+                        <div class="ic"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                        <h4>Early warning</h4>
+                        <p>Flags risk before physical symptoms appear.</p>
+                    </div>
+                    <div class="adv-item" data-reveal>
+                        <div class="ic"><i class="fa-solid fa-leaf"></i></div>
+                        <h4>Saves crops</h4>
+                        <p>Protects and increases overall yield.</p>
+                    </div>
+                    <div class="adv-item" data-reveal>
+                        <div class="ic"><i class="fa-solid fa-money-bill-wave"></i></div>
+                        <h4>Saves money</h4>
+                        <p>Cuts pesticide spend through targeted use.</p>
+                    </div>
+                    <div class="adv-item" data-reveal>
+                        <div class="ic"><i class="fa-solid fa-earth-asia"></i></div>
+                        <h4>Eco-friendly</h4>
+                        <p>Reduces chemical load on soil and water.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FUTURE SCOPE -->
+        <section>
+            <div class="wrap">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow"><span class="dot"></span> What's next</div>
+                    <h2 class="section-title">Future <span class="text-gradient">scope</span></h2>
+                </div>
+                <div class="grid-3 scope">
+                    <div class="card" data-reveal>
+                        <div class="scope-ic blue"><i class="fa-solid fa-plane-up"></i></div>
+                        <h4 style="font-size:1.1rem; margin-bottom:8px;">Drone integration</h4>
+                        <p style="color:var(--graphite-600); font-size:0.92rem; margin:0;">Thermal-camera drones for large-scale monitoring and targeted spraying.</p>
+                    </div>
+                    <div class="card" data-reveal>
+                        <div class="scope-ic"><i class="fa-solid fa-cloud-sun-rain"></i></div>
+                        <h4 style="font-size:1.1rem; margin-bottom:8px;">Weather API integration</h4>
+                        <p style="color:var(--graphite-600); font-size:0.92rem; margin:0;">Combining sensor data with satellite forecasts for sharper predictions.</p>
+                    </div>
+                    <div class="card" data-reveal>
+                        <div class="scope-ic blue"><i class="fa-solid fa-language"></i></div>
+                        <h4 style="font-size:1.1rem; margin-bottom:8px;">Multi-language app</h4>
+                        <p style="color:var(--graphite-600); font-size:0.92rem; margin:0;">A mobile app in regional languages to build a national farmer network.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GALLERY -->
+        <section style="background:var(--paper-alt);">
+            <div class="wrap">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow"><span class="dot"></span> Snapshots</div>
+                    <h2 class="section-title">Project <span class="text-gradient">gallery</span></h2>
+                </div>
+                <div class="masonry" data-reveal>
+                    <img src="https://images.unsplash.com/photo-1592982537447-6f2944b25e79?q=80&w=800&auto=format&fit=crop" alt="Gallery image">
+                    <img src="https://images.unsplash.com/photo-1555664424-778a1e5e1b48?q=80&w=800&auto=format&fit=crop" alt="Gallery image">
+                    <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=800&auto=format&fit=crop" alt="Gallery image">
+                    <img src="https://images.unsplash.com/photo-1605333550291-76cd2d043d83?q=80&w=800&auto=format&fit=crop" alt="Gallery image">
+                    <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop" alt="Gallery image">
+                </div>
+            </div>
+        </section>
+
+        <!-- TEAM -->
+        <section>
+            <div class="wrap">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow"><span class="dot"></span> Who built it</div>
+                    <h2 class="section-title">Project <span class="text-gradient">team</span></h2>
+                </div>
+                <div class="team-card card" data-reveal="scale">
+                    <div class="avatar"><i class="fa-solid fa-user-graduate"></i></div>
+                    <h3>Ujjwal Singh</h3>
+                    <div class="team-role">Student Innovator</div>
+                    <div class="team-meta">
+                        <div><i class="fa-solid fa-school"></i> DAV Public School</div>
+                        <div><i class="fa-solid fa-award"></i> National Children's Science Congress (NCSC)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section style="background:var(--paper-alt);">
+            <div class="wrap-narrow">
+                <div class="section-head center" data-reveal>
+                    <div class="eyebrow"><span class="dot"></span> Reach out</div>
+                    <h2 class="section-title">Get in <span class="text-gradient">touch</span></h2>
+                </div>
+
+                <form class="contact-card card" data-reveal onsubmit="event.preventDefault(); alert('Thank you for reaching out! This is a demo form.');">
+                    <div class="field-row">
+                        <div class="field">
+                            <label for="cf-name">Name</label>
+                            <input id="cf-name" type="text" required placeholder="Your name">
+                        </div>
+                        <div class="field">
+                            <label for="cf-email">Email</label>
+                            <input id="cf-email" type="email" required placeholder="you@example.com">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="cf-msg">Message</label>
+                        <textarea id="cf-msg" required placeholder="Your message here..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">
+                        Send message <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="wrap">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-brand">
+                        <span class="brand-mark">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                        </span>
+                        AgriSense
+                    </div>
+                    <p class="footer-desc">An AI-based disease early warning system for farmers — built to make sustainable agriculture practical at small scale.</p>
+                </div>
+                <div>
+                    <div class="footer-heading">Project info</div>
+                    <ul class="footer-list">
+                        <li><i class="fa-solid fa-user"></i> Ujjwal Singh</li>
+                        <li><i class="fa-solid fa-school"></i> DAV Public School</li>
+                        <li><i class="fa-solid fa-award"></i> NCSC 2026</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="footer-heading">Elsewhere</div>
+                    <div class="social-row">
+                        <a href="#" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">&copy; 2026 AgriSense — NCSC Project. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <button id="back-to-top" title="Back to top" aria-label="Back to top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
