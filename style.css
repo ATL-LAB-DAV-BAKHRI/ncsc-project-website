@@ -493,6 +493,9 @@ section { position: relative; padding: 128px 0; }
   border: 1px solid rgba(255,255,255,0.4);
 }
 .hero-photo img { width: 100%; height: 460px; object-fit: cover; display: block; }
+@media (max-width: 768px) {
+  .hero-photo img { height: 320px; }
+}
 .hero-photo::after {
   content: '';
   position: absolute; inset: 0;
@@ -545,6 +548,16 @@ section { position: relative; padding: 128px 0; }
   padding: 4px 10px; border-radius: var(--radius-pill);
   background: rgba(216,155,74,0.18); color: var(--amber-soft);
   border: 1px solid rgba(216,155,74,0.35);
+}
+
+@media (max-width: 768px) {
+  .terminal {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -20px;
+    width: 90%;
+    max-width: 320px;
+  }
 }
 
 .float-chip {
@@ -660,9 +673,16 @@ section { position: relative; padding: 128px 0; }
 /* ============================================================
    HARDWARE / SOFTWARE
    ============================================================ */
+.hw-sw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 70px; }
+@media (max-width: 980px) {
+  .hw-sw-grid { grid-template-columns: 1fr; gap: 40px; }
+}
 .stack-col h2 { font-size: 1.7rem; display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
 .stack-col h2 i { font-size: 1.3rem; }
 .chip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 560px) {
+  .chip-grid { grid-template-columns: 1fr; }
+}
 .chip-item {
   display: flex; align-items: center; gap: 12px;
   padding: 16px 18px;
@@ -705,6 +725,10 @@ section { position: relative; padding: 128px 0; }
 .feat-card h4 { font-size: 1.1rem; margin-bottom: 8px; }
 .feat-card p { color: var(--graphite-600); font-size: 0.92rem; margin: 0; }
 .feat-card.wide { display: flex; align-items: center; gap: 26px; }
+@media (max-width: 560px) {
+  .feat-card.wide { flex-direction: column; align-items: flex-start; text-align: left; gap: 16px; }
+  .feat-card.wide .ic { margin-bottom: 12px; }
+}
 .feat-card.wide .ic { margin-bottom: 0; flex-shrink: 0; }
 
 /* ============================================================
@@ -714,7 +738,11 @@ section { position: relative; padding: 128px 0; }
 @media (max-width: 860px) { .survey-grid { grid-template-columns: 1fr; } }
 .chart-card { padding: 34px; border-radius: var(--radius-lg); }
 .chart-card h3 { font-size: 1.15rem; text-align: center; margin-bottom: 24px; }
-.chart-card .canvas-wrap { height: 260px; display: flex; justify-content: center; }
+.chart-card .canvas-wrap { position: relative; height: 260px; width: 100%; }
+@media (max-width: 560px) {
+  .chart-card { padding: 24px; }
+  .chart-card .canvas-wrap { height: 220px; }
+}
 .chart-card .caption { text-align: center; font-size: 0.86rem; color: var(--graphite-400); margin-top: 18px; }
 
 .findings-card { padding: 40px; border-radius: var(--radius-lg); }

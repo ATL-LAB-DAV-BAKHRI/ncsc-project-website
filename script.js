@@ -284,7 +284,7 @@ function initCharts() {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: true,
+      maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom', labels: { color: text, font: { family: 'IBM Plex Mono', size: 11 } } } }
     }
   });
@@ -303,7 +303,7 @@ function initCharts() {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: true,
+      maintainAspectRatio: false,
       scales: {
         y: { beginAtZero: true, ticks: { color: text, font: { family: 'IBM Plex Mono', size: 10 } }, grid: { color: grid } },
         x: { ticks: { color: text, font: { family: 'IBM Plex Mono', size: 10 } }, grid: { display: false } }
